@@ -1,9 +1,9 @@
 # PES Master League Editor Ultra ⚽💰
 
+[![Latest Release](https://img.shields.io/github/v/release/SouzaDH91/PES-Master-League-Editor-Ultra?logo=github&color=2ea44f)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20x64-blue?logo=windows&logoColor=white)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
-[![Release](https://img.shields.io/badge/release/SouzaDH91/PES-Master-League-Editor-Ultra)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078D6?logo=windows&logoColor=white)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
+[![License](https://img.shields.io/github/license/SouzaDH91/PES-Master-League-Editor-Ultra?logo=open-source-initiative&logoColor=white&color=yellow)](LICENSE)
 
 Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Evolution Soccer (PC)** desenvolvido em **C# / .NET**.
 
