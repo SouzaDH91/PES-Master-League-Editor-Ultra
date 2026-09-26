@@ -1,11 +1,11 @@
-# PES 2019 Master League Editor ⚽💰
+# PES Master League Editor Ultra ⚽💰
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20x64-blue?logo=windows&logoColor=white)](https://github.com/)
-[![Release](https://img.shields.io/badge/Release-v0.1.0-green.svg)](https://github.com/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20x64-blue?logo=windows&logoColor=white)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v0.1.0-green.svg)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Evolution Soccer 2019 (PC)** desenvolvido em **C# / .NET**.
+Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Evolution Soccer (PC)** desenvolvido em **C# / .NET**.
 
 ---
 
@@ -85,6 +85,7 @@ PES 2019 Master League Editor/
 - [ ] **v0.3**: Gestão do Elenco (contratos restantes, salários individuais de jogadores, moral e espírito de equipe).
 - [ ] **v0.4**: Status e Atributos de Jogadores (overall, habilidades e fadiga).
 - [ ] **v0.5**: Transferências Forçadas entre clubes diretamente no save.
+- [ ] **v0.6**: Suporte Multi-Versões do PES (adaptação para PES 2016-2021 com chaves dedicadas e legado PES 2013-2015).
 
 ---
 
