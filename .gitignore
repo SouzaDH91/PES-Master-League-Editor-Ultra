@@ -1,0 +1,18 @@
+## Build and output folders
+bin/
+obj/
+publish/
+*.user
+*.suo
+
+## Test results
+TestResults/
+
+## Visual Studio & Rider caches
+.vs/
+.idea/
+
+## Temp and backups
+*.bak
+*.bak_*
+*.tmp

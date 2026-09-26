@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Pes2019MlEditor.Core/Pes2019MlEditor.Core.csproj" />
+    <Project Path="src/Pes2019MlEditor.UI/Pes2019MlEditor.UI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Pes2019MlEditor.Tests/Pes2019MlEditor.Tests.csproj" />
+  </Folder>
+</Solution>
