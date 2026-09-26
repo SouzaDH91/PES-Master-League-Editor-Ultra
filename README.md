@@ -2,7 +2,7 @@
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-blue?logo=windows&logoColor=white)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
-[![Release](https://img.shields.io/badge/release/SouzaDH91/PES-Master-League-Editor-Ultra?style=for-the-badge)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
+[![Release](https://img.shields.io/badge/release/SouzaDH91/PES-Master-League-Editor-Ultra)](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Evolution Soccer (PC)** desenvolvido em **C# / .NET**.
