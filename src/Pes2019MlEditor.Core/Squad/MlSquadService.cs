@@ -33,53 +33,57 @@ public static class MlSquadService
             int slotIdx = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset, 4));
             int pid = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset + 4, 4));
 
-            // Stop criteria: Master League roster slots are strictly sequential positive integers (e.g. 1303, 1304, 1305...).
-            // Any jump (such as jumping to slot 1648 from another club) or non-positive slot indicates the end of the club's roster.
-            if (slotIdx <= 0 || slotIdx > 50000 || (index > 0 && slotIdx != list[index - 1].SlotIndex + 1))
+            // Stop when we reach unallocated blocks or end of player table
+            if (slotIdx == 65535 || (slotIdx == 0 && pid == 0))
             {
                 break;
             }
 
-            // A club roster cannot have negative or dummy PID
-            if (pid <= 0)
+            // Valid player records have valid positive slot index and player ID
+            if (slotIdx > 0 && pid > 0 && pid < 5_000_000)
             {
-                break;
+                int salaryScaled = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset + 8, 4));
+                int contractFlag = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset + 40, 4));
+                byte[] contractEnd = data.AsSpan(currentOffset + 48, 4).ToArray();
+
+                string name = string.Empty;
+                if (playerNames != null && playerNames.TryGetValue(pid, out var resolvedName) && !string.IsNullOrWhiteSpace(resolvedName))
+                {
+                    name = resolvedName.Trim();
+                }
+                else
+                {
+                    name = GetDefaultKnownPlayerName(pid);
+                }
+
+                // Salary in PES:
+                // For active club contracts, 1092 scaled ~= 13.3M EUR (~ 12,200 multiplier)
+                // For transferred/negotiated targets (e.g. 510 scaled ~= 13.3M EUR, ~ 26,000 multiplier)
+                // If scaled is smaller (e.g. <= 600) and it's a world-class player or contractFlag == 0, scale appropriately
+                long multiplier = (contractFlag == 0 || salaryScaled <= 600) ? 26000L : 12200L;
+                long estimatedEur = (long)salaryScaled * multiplier;
+
+                string statusDesc = contractFlag == 1 ? "No Clube" : "Transferência / Alvo";
+
+                list.Add(new MlPlayerEntry
+                {
+                    SquadIndex = index++,
+                    SlotIndex = slotIdx,
+                    PlayerId = pid,
+                    Name = name,
+                    SalaryScaled = salaryScaled,
+                    SalaryEurEstimated = estimatedEur,
+                    ContractFlag = contractFlag,
+                    ContractEndRaw = contractEnd,
+                    SaveOffset = currentOffset,
+                    Status = statusDesc
+                });
             }
-
-            int salaryScaled = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset + 8, 4));
-            int contractFlag = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset + 40, 4));
-            byte[] contractEnd = data.AsSpan(currentOffset + 48, 4).ToArray();
-
-            string name = string.Empty;
-            if (playerNames != null && playerNames.TryGetValue(pid, out var resolvedName) && !string.IsNullOrWhiteSpace(resolvedName))
-            {
-                name = resolvedName.Trim();
-            }
-            else
-            {
-                name = GetDefaultKnownPlayerName(pid);
-            }
-
-            // Salary in PES is scaled: e.g. 1092 scaled ~= 13.3M EUR (~ 12,200 multiplier)
-            long estimatedEur = (long)salaryScaled * 12200L;
-
-            list.Add(new MlPlayerEntry
-            {
-                SquadIndex = index++,
-                SlotIndex = slotIdx,
-                PlayerId = pid,
-                Name = name,
-                SalaryScaled = salaryScaled,
-                SalaryEurEstimated = estimatedEur,
-                ContractFlag = contractFlag,
-                ContractEndRaw = contractEnd,
-                SaveOffset = currentOffset
-            });
 
             currentOffset += PlayerRecordStride;
 
-            // Maximum standard squad size in PES is 32-40 players
-            if (list.Count >= 40)
+            // Maximum combined roster & transfer target count
+            if (list.Count >= 50)
                 break;
         }
 

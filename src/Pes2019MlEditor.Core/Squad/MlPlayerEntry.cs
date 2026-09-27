@@ -49,4 +49,9 @@ public sealed class MlPlayerEntry
     /// Exact byte offset where this 52-byte record begins in the decrypted save data.
     /// </summary>
     public int SaveOffset { get; set; }
+
+    /// <summary>
+    /// Contract or squad status description (e.g. "Elenco Principal", "Transferido / Alvo").
+    /// </summary>
+    public string Status { get; set; } = "No Clube";
 }

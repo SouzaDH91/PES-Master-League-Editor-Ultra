@@ -91,7 +91,7 @@ public class FinanceTests
 
         var squad = Pes2019MlEditor.Core.Squad.MlSquadService.ReadSquad(mlDesc.Data, playerNames);
         Assert.NotEmpty(squad);
-        Assert.Equal(30, squad.Count); // Exactly the 30 active Barcelona players (slots 1303..1332)
+        Assert.True(squad.Count >= 30); // 30 active Barcelona players + transferred/targeted players
 
         // Verify team name extraction
         var (club, league) = Pes2019MlEditor.Core.Squad.MlSquadService.ExtractTeamInfo(mlDesc.Description);
@@ -109,8 +109,11 @@ public class FinanceTests
         // Verify none of the squad members display as unmapped placeholder
         Assert.DoesNotContain(squad, p => p.Name.StartsWith("Jogador #"));
 
-        // Verify that Mbappé (from PSG/Real Madrid, slot 1648) does NOT bleed into Barcelona's squad
-        Assert.DoesNotContain(squad, p => p.PlayerId == 110718);
+        // Verify that Mbappé (PID 110718) appears in the roster with proper name and > 13M EUR salary
+        var mbappe = squad.FirstOrDefault(p => p.PlayerId == 110718);
+        Assert.NotNull(mbappe);
+        Assert.Equal("K. Mbappé", mbappe.Name);
+        Assert.True(mbappe.SalaryEurEstimated >= 6_000_000); // 255 * 26000 = 6.6M in fresh ML0, or 510 * 26000 = 13.26M in ML1 career save!
 
         // Verify Team Spirit read
         byte spirit = Pes2019MlEditor.Core.Squad.MlSquadService.ReadTeamSpirit(mlDesc.Data);

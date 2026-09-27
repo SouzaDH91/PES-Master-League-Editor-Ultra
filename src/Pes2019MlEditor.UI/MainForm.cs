@@ -1095,6 +1095,7 @@ public partial class MainForm : Form
         _gridSquad.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SlotIndex", HeaderText = "Slot", Width = 60 });
         _gridSquad.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PlayerId", HeaderText = "ID", Width = 80 });
         _gridSquad.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Name", HeaderText = "Nome do Jogador", FillWeight = 160 });
+        _gridSquad.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "Situação", Width = 130 });
         _gridSquad.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SalaryScaled", HeaderText = "Salário (Base)", Width = 110 });
         _gridSquad.Columns.Add(new DataGridViewTextBoxColumn
         {
@@ -1114,7 +1115,8 @@ public partial class MainForm : Form
         {
             _lblSelectedPlayerInfo.Text = $"{player.Name} (ID: {player.PlayerId} | Slot: {player.SlotIndex})";
             _numPlayerSalaryScaled.Value = Math.Clamp(player.SalaryScaled, 0, (int)_numPlayerSalaryScaled.Maximum);
-            long est = (long)player.SalaryScaled * 12200L;
+            long multiplier = (player.ContractFlag == 0 || player.SalaryScaled <= 600) ? 26000L : 12200L;
+            long est = (long)player.SalaryScaled * multiplier;
             _lblPlayerSalaryEurEst.Text = $"≈ € {est:N0} / ano";
             _btnApplyPlayerSalary.Enabled = true;
         }
@@ -1134,8 +1136,9 @@ public partial class MainForm : Form
         bool ok = MlSquadService.WritePlayerSalary(_currentSave.Data, player.SaveOffset, newSalaryScaled);
         if (ok)
         {
+            long multiplier = (player.ContractFlag == 0 || newSalaryScaled <= 600) ? 26000L : 12200L;
             player.SalaryScaled = newSalaryScaled;
-            player.SalaryEurEstimated = (long)newSalaryScaled * 12200L;
+            player.SalaryEurEstimated = (long)newSalaryScaled * multiplier;
             _gridSquad.Refresh();
             Log($"Salário do jogador {player.Name} atualizado para base {newSalaryScaled} (≈ € {player.SalaryEurEstimated:N0}/ano) na memória.");
             MessageBox.Show($"Salário do jogador {player.Name} atualizado na memória!\nClique em 'Salvar Alterações' para gravar o arquivo ML.", "Salário Atualizado", MessageBoxButtons.OK, MessageBoxIcon.Information);
