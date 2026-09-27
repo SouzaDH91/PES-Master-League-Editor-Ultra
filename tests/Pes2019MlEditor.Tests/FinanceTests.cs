@@ -68,4 +68,50 @@ public class FinanceTests
         var verifyDate = Pes2019MlEditor.Core.Calendar.MlCalendarService.ReadDate(desc.Data);
         Assert.Equal(newDate, verifyDate);
     }
+
+    [Fact]
+    public void MlSquadService_ReadsSquadAndNamesCorrectly()
+    {
+        string mlPath = @"C:\Users\Diego\Documents\HANO4U\PRO EVOLUTION SOCCER 2019\292733975847239680\save\ML00000000";
+        string editPath = @"C:\Users\Diego\Documents\HANO4U\PRO EVOLUTION SOCCER 2019\292733975847239680\save\EDIT00000000";
+        if (!File.Exists(mlPath)) return;
+
+        var mlDesc = Pes19Crypto.Decrypt(File.ReadAllBytes(mlPath), Pes19Crypto.MasterKeyPes19);
+
+        Dictionary<int, string>? playerNames = null;
+        if (File.Exists(editPath))
+        {
+            var editDesc = Pes19Crypto.Decrypt(File.ReadAllBytes(editPath), Pes19Crypto.MasterKeyPes19);
+            playerNames = Pes2019MlEditor.Core.Squad.MlSquadService.LoadPlayerNamesFromEdit(editDesc.Data);
+            Assert.True(playerNames.Count > 100);
+            Assert.True(playerNames.ContainsKey(162114)); // Yamal
+            Assert.True(playerNames.ContainsKey(110644)); // Raphinha
+            Assert.True(playerNames.ContainsKey(110815)); // Rodri
+        }
+
+        var squad = Pes2019MlEditor.Core.Squad.MlSquadService.ReadSquad(mlDesc.Data, playerNames);
+        Assert.NotEmpty(squad);
+        Assert.True(squad.Count >= 25);
+
+        // Check key players in Barcelona
+        var yamal = squad.FirstOrDefault(p => p.PlayerId == 162114);
+        Assert.NotNull(yamal);
+        Assert.Contains("Yamal", yamal.Name);
+
+        var raph = squad.FirstOrDefault(p => p.PlayerId == 110644);
+        Assert.NotNull(raph);
+        Assert.Contains("Raphinha", raph.Name);
+
+        var rodri = squad.FirstOrDefault(p => p.PlayerId == 110815);
+        Assert.NotNull(rodri);
+        Assert.Contains("Rodri", rodri.Name);
+
+        // Check Team Spirit reading & writing
+        byte ts = Pes2019MlEditor.Core.Squad.MlSquadService.ReadTeamSpirit(mlDesc.Data);
+        Assert.Equal(94, ts);
+
+        bool spiritWritten = Pes2019MlEditor.Core.Squad.MlSquadService.WriteTeamSpirit(mlDesc.Data, 99);
+        Assert.True(spiritWritten);
+        Assert.Equal(99, Pes2019MlEditor.Core.Squad.MlSquadService.ReadTeamSpirit(mlDesc.Data));
+    }
 }
