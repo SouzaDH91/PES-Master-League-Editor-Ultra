@@ -242,16 +242,32 @@ public partial class MainForm : Form
             Top = top,
             Left = 0,
             Width = 204,
-            Height = 38,
+            Height = 42,
             FlatStyle = FlatStyle.Flat,
             TextAlign = ContentAlignment.MiddleLeft,
-            Padding = new Padding(12, 0, 0, 0),
+            Padding = new Padding(14, 0, 0, 0),
             BackColor = ColorSidebar,
             ForeColor = ColorTextMuted,
             Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
             Cursor = Cursors.Hand
         };
         btn.FlatAppearance.BorderSize = 0;
+        btn.MouseEnter += (s, e) =>
+        {
+            if (btn.Tag as string != "active")
+            {
+                btn.BackColor = Color.FromArgb(32, 34, 52);
+                btn.ForeColor = Color.White;
+            }
+        };
+        btn.MouseLeave += (s, e) =>
+        {
+            if (btn.Tag as string != "active")
+            {
+                btn.BackColor = ColorSidebar;
+                btn.ForeColor = ColorTextMuted;
+            }
+        };
         return btn;
     }
 
@@ -267,12 +283,14 @@ public partial class MainForm : Form
         {
             if (btn == activeBtn)
             {
-                btn.BackColor = Color.FromArgb(38, 42, 65);
+                btn.Tag = "active";
+                btn.BackColor = Color.FromArgb(35, 45, 75);
                 btn.ForeColor = ColorAccent;
                 btn.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
             }
             else
             {
+                btn.Tag = "inactive";
                 btn.BackColor = ColorSidebar;
                 btn.ForeColor = ColorTextMuted;
                 btn.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
