@@ -9,12 +9,17 @@ Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Ev
 
 ---
 
-## ✨ Funcionalidades Principais (v0.1.0)
+## ✨ Funcionalidades Principais (v0.2.0)
 
 - 🔓 **Motor Criptográfico Nativo Konami (C#)**:
-  - Implementação integral do algoritmo proprietário da Konami baseado no PRNG **Mersenne Twister (MT19937)** com a Master Key original do PES 2019.
+  - Implementação integral do algoritmo proprietário da Konami baseado no PRNG **Mersenne Twister (MT19937)** com a Master Key original do PES.
   - Suporte ao header de criptografia de 320 bytes (`EncryptionHeader`), metadados de cabeçalho (`FileHeader`), miniatura PNG do save e payload (`data.dat`).
   - Criptografia simétrica com recálculo automático de integridade e checagens de payload, garantindo 100% de compatibilidade sem o jogo acusar "dados corrompidos".
+- 📅 **Gestão do Calendário da Carreira (Novo na v0.2.0)**:
+  - **Detecção Automática de Data**: Localização instantânea da data atual da temporada ao carregar o save.
+  - **Seletor de Data Visual**: Defina qualquer dia, mês e ano da carreira através do componente `DateTimePicker`.
+  - **Atalhos Rápidos**: Botões de simulação para avançar `+ 1 Semana`, `+ 1 Mês` ou saltar diretamente para o `Fim da Janela de Verão (31/08)`.
+  - **Sincronização de Metadados**: Atualiza simultaneamente o buffer de datas interno da Master Liga e a descrição de texto do slot.
 - 💰 **Edição Completa de Finanças & Orçamentos**:
   - Ajuste direto do **Orçamento de Transferências**.
   - Ajuste do **Caixa Total do Clube** (que define e expande o teto do **Orçamento de Salários**).
@@ -24,7 +29,7 @@ Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Ev
     - `ML00000000.bak` (última versão antes da alteração)
     - `ML00000000.bak_YYYYMMDD_HHMMSS` (histórico com data e hora)
 - 🎨 **Interface Gráfica Moderna (Dark Theme)**:
-  - Detecção automática de diretórios de save do PES 2019 na pasta Documentos (Steam e patches como HANO4U).
+  - Detecção automática de diretórios de save do PES na pasta Documentos (Steam e patches comunitários como HANO4U).
   - Visualização da logo/miniatura original do save.
   - Console de log em tempo real integrado na tela.
   - Executável independente (**Single-File standalone**), não necessita instalar o .NET no computador do usuário.
@@ -33,7 +38,7 @@ Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Ev
 
 ## 📥 Download & Instalação
 
-1. Vá até a aba de **[Releases](https://github.com/)** e baixe o arquivo `Pes2019MlEditor-v0.1.0-win-x64.zip`.
+1. Vá até a aba de **[Releases](https://github.com/SouzaDH91/PES-Master-League-Editor-Ultra/releases/latest)** e baixe o arquivo `Pes2019MlEditor-v0.2.0-win-x64.zip`.
 2. Extraia o arquivo `.zip` em qualquer pasta do seu computador.
 3. Execute o `Pes2019MlEditor.UI.exe`.
 
@@ -43,10 +48,11 @@ Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Ev
 
 1. **Abra o programa**. Ele tentará detectar automaticamente seus arquivos de save da Master Liga.
 2. Selecione o save desejado no menu suspenso ou clique em **Procurar...** para selecionar o arquivo manualmente (`ML00000000`, `ML00000001`, etc.).
-3. O editor carregará a miniatura do save e detectará os valores atuais de orçamento.
-4. Ajuste os valores desejados nos campos de **Orçamento de Transferência** e **Caixa Total / Salários** (ou use os botões de atalho rápido).
-5. Clique em **Salvar Alterações**. O editor salvará o arquivo recriptografado e gerará um backup `.bak`.
-6. Abra o **PES 2019** e carregue o seu save normalmente!
+3. O editor carregará a miniatura do save, detectará os valores atuais de orçamento e a data atual do calendário.
+4. Ajuste a **Data da Carreira** usando o seletor de data ou botões de atalho (`+ 1 Semana`, `+ 1 Mês`, `31/08`) e clique em **Atualizar Data**.
+5. Ajuste os orçamentos nos campos de **Orçamento de Transferência** e **Caixa Total / Salários** (ou use os botões de atalho rápido).
+6. Clique em **Salvar Alterações**. O editor salvará o arquivo recriptografado e gerará um backup `.bak`.
+7. Abra o **PES** e carregue o seu save normalmente!
 
 ---
 
@@ -55,7 +61,9 @@ Editor moderno de arquivos de save da Master Liga (`ML00000000`) para o **Pro Ev
 ```text
 PES 2019 Master League Editor/
 ├── src/
-│   ├── Pes2019MlEditor.Core/          # Lógica central: Criptografia, IO e Serviços Financeiros
+│   ├── Pes2019MlEditor.Core/          # Lógica central: Criptografia, IO, Calendário e Finanças
+│   │   ├── Calendar/
+│   │   │   └── MlCalendarService.cs   # Leitura, escrita e escaneamento de datas da Master Liga
 │   │   ├── Crypto/
 │   │   │   ├── MersenneTwister.cs     # Gerador de números pseudo-aleatórios MT19937 (32-bit)
 │   │   │   └── Pes19Crypto.cs         # Descriptografia e Re-criptografia do envelope Konami
@@ -73,7 +81,7 @@ PES 2019 Master League Editor/
 └── tests/
     └── Pes2019MlEditor.Tests/         # Suíte de testes unitários (xUnit)
         ├── CryptoTests.cs             # Testes de integridade criptográfica
-        └── FinanceTests.cs            # Testes de busca e edição de dados financeiros
+        └── FinanceTests.cs            # Testes de busca, edição de orçamentos e calendário
 ```
 
 ---
