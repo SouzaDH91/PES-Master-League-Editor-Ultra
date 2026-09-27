@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Drawing.Drawing2D;
+using Pes2019MlEditor.Core.Calendar;
 using Pes2019MlEditor.Core.Crypto;
 using Pes2019MlEditor.Core.Finance;
 using Pes2019MlEditor.Core.IO;
@@ -27,6 +28,14 @@ public partial class MainForm : Form
     private Button _btnSaveFile = null!;
     private Button _btnBackup = null!;
 
+    // Calendar & Career Controls (v0.2)
+    private DateTimePicker _dtpCareerDate = null!;
+    private Button _btnApplyDate = null!;
+    private Button _btnAdvanceWeek = null!;
+    private Button _btnAdvanceMonth = null!;
+    private Button _btnJumpTransferEnd = null!;
+    private Label _lblCurrentCareerDate = null!;
+
     // Finance Controls
     private TextBox _txtTransferCurrent = null!;
     private TextBox _txtSalaryCurrent = null!;
@@ -46,22 +55,23 @@ public partial class MainForm : Form
 
     private void InitializeComponents()
     {
-        Text = "PES 2019 Master League Editor v0.1 - [Finanças & Orçamento]";
-        Size = new Size(880, 750);
+        Text = "PES Master League Editor Ultra v0.2.0 - [Finanças & Calendário]";
+        Size = new Size(900, 840);
         StartPosition = FormStartPosition.CenterScreen;
-        MinimumSize = new Size(840, 700);
+        MinimumSize = new Size(880, 780);
         Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
 
         var mainPanel = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 4,
+            RowCount = 5,
             Padding = new Padding(12),
         };
         mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 185)); // Header & File Selection (Auto + Manual)
-        mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 200)); // Finance Finder
-        mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 160)); // Budget Editor
+        mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 110)); // Calendar Editor (v0.2)
+        mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 180)); // Finance Finder
+        mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 155)); // Budget Editor
         mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));  // Logs
 
         // 1. Header Group
@@ -196,10 +206,95 @@ public partial class MainForm : Form
         ]);
         mainPanel.Controls.Add(grpHeader, 0, 0);
 
-        // 2. Finance Finder Group
+        // 2. Calendar Group (v0.2)
+        var grpCalendar = new GroupBox
+        {
+            Text = "1. Calendário da Carreira (Data da Master Liga)",
+            Dock = DockStyle.Fill,
+            ForeColor = Color.White
+        };
+
+        var lblCalIntro = new Label
+        {
+            Text = "Data atual da carreira:",
+            Location = new Point(15, 25),
+            AutoSize = true
+        };
+
+        _lblCurrentCareerDate = new Label
+        {
+            Text = "--/--/----",
+            Location = new Point(155, 25),
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+            ForeColor = Color.FromArgb(100, 220, 255)
+        };
+
+        var lblNewDate = new Label
+        {
+            Text = "Definir nova data:",
+            Location = new Point(15, 60),
+            AutoSize = true
+        };
+
+        _dtpCareerDate = new DateTimePicker
+        {
+            Location = new Point(135, 57),
+            Size = new Size(140, 26),
+            Format = DateTimePickerFormat.Short,
+            Enabled = false
+        };
+
+        _btnApplyDate = new Button
+        {
+            Text = "📅 Atualizar Data",
+            Size = new Size(130, 28),
+            Location = new Point(285, 56),
+            Cursor = Cursors.Hand,
+            Enabled = false
+        };
+        _btnApplyDate.Click += OnApplyDateClicked;
+
+        _btnAdvanceWeek = new Button
+        {
+            Text = "+ 1 Semana",
+            Size = new Size(100, 28),
+            Location = new Point(425, 56),
+            Cursor = Cursors.Hand,
+            Enabled = false
+        };
+        _btnAdvanceWeek.Click += (s, e) => _dtpCareerDate.Value = _dtpCareerDate.Value.AddDays(7);
+
+        _btnAdvanceMonth = new Button
+        {
+            Text = "+ 1 Mês",
+            Size = new Size(90, 28),
+            Location = new Point(530, 56),
+            Cursor = Cursors.Hand,
+            Enabled = false
+        };
+        _btnAdvanceMonth.Click += (s, e) => _dtpCareerDate.Value = _dtpCareerDate.Value.AddMonths(1);
+
+        _btnJumpTransferEnd = new Button
+        {
+            Text = "⏳ Fim Janela Verão (31/08)",
+            Size = new Size(190, 28),
+            Location = new Point(625, 56),
+            Cursor = Cursors.Hand,
+            Enabled = false
+        };
+        _btnJumpTransferEnd.Click += (s, e) => _dtpCareerDate.Value = new DateTime(_dtpCareerDate.Value.Year, 8, 31);
+
+        grpCalendar.Controls.AddRange([
+            lblCalIntro, _lblCurrentCareerDate, lblNewDate, _dtpCareerDate,
+            _btnApplyDate, _btnAdvanceWeek, _btnAdvanceMonth, _btnJumpTransferEnd
+        ]);
+        mainPanel.Controls.Add(grpCalendar, 0, 1);
+
+        // 3. Finance Finder Group
         var grpSearch = new GroupBox
         {
-            Text = "1. Localizador de Finanças do Clube",
+            Text = "2. Localizador de Finanças do Clube",
             Dock = DockStyle.Fill,
             ForeColor = Color.White
         };
@@ -263,12 +358,12 @@ public partial class MainForm : Form
         _cboCandidates.SelectedIndexChanged += OnCandidateSelected;
 
         grpSearch.Controls.AddRange([lblHelp, lblCurTransfer, _txtTransferCurrent, lblCurSalary, _txtSalaryCurrent, _btnSearchBudget, lblCandidate, _cboCandidates]);
-        mainPanel.Controls.Add(grpSearch, 0, 1);
+        mainPanel.Controls.Add(grpSearch, 0, 2);
 
-        // 3. Budget Editor Group
+        // 4. Budget Editor Group
         var grpEdit = new GroupBox
         {
-            Text = "2. Editar Valores de Orçamento",
+            Text = "3. Editar Valores de Orçamento",
             Dock = DockStyle.Fill,
             ForeColor = Color.White
         };
@@ -332,9 +427,9 @@ public partial class MainForm : Form
         };
 
         grpEdit.Controls.AddRange([lblNewTrans, _numNewTransfer, lblNewSal, _numNewSalary, _btnApplyBudget, btnAdd50M, btnAdd100M, btnAdd10MSal, btnAdd25MSal, btnMaxAll]);
-        mainPanel.Controls.Add(grpEdit, 0, 2);
+        mainPanel.Controls.Add(grpEdit, 0, 3);
 
-        // 4. Console / Log
+        // 5. Console / Log
         var grpLog = new GroupBox
         {
             Text = "Registro de Atividades (Logs)",
@@ -350,7 +445,7 @@ public partial class MainForm : Form
             Font = new Font("Consolas", 9f)
         };
         grpLog.Controls.Add(_txtLog);
-        mainPanel.Controls.Add(grpLog, 0, 3);
+        mainPanel.Controls.Add(grpLog, 0, 4);
 
         Controls.Add(mainPanel);
     }
@@ -474,6 +569,29 @@ public partial class MainForm : Form
                 _picSaveLogo.Image = null;
             }
 
+            // Auto-detect and populate Calendar Date (v0.2)
+            var careerDate = MlCalendarService.ReadDate(_currentSave.Data);
+            if (careerDate.HasValue)
+            {
+                _lblCurrentCareerDate.Text = careerDate.Value.ToString("dd/MM/yyyy");
+                _dtpCareerDate.Value = careerDate.Value;
+                _dtpCareerDate.Enabled = true;
+                _btnApplyDate.Enabled = true;
+                _btnAdvanceWeek.Enabled = true;
+                _btnAdvanceMonth.Enabled = true;
+                _btnJumpTransferEnd.Enabled = true;
+                Log($"Data do calendário detectada: {careerDate.Value:dd/MM/yyyy}");
+            }
+            else
+            {
+                _lblCurrentCareerDate.Text = "Não identificada";
+                _dtpCareerDate.Enabled = false;
+                _btnApplyDate.Enabled = false;
+                _btnAdvanceWeek.Enabled = false;
+                _btnAdvanceMonth.Enabled = false;
+                _btnJumpTransferEnd.Enabled = false;
+            }
+
             _cboCandidates.Items.Clear();
 
             // Auto-detect and pre-load club finances if found at default offset
@@ -511,6 +629,24 @@ public partial class MainForm : Form
         {
             MessageBox.Show($"Erro ao descriptografar save: {ex.Message}", "Erro de Leitura", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Log($"Falha ao abrir save: {ex.Message}");
+        }
+    }
+
+    private void OnApplyDateClicked(object? sender, EventArgs e)
+    {
+        if (_currentSave == null) return;
+
+        DateTime selectedDate = _dtpCareerDate.Value.Date;
+        bool ok = MlCalendarService.WriteDate(_currentSave, selectedDate);
+        if (ok)
+        {
+            _lblCurrentCareerDate.Text = selectedDate.ToString("dd/MM/yyyy");
+            Log($"Nova data aplicada na memória: {selectedDate:dd/MM/yyyy}. Clique em 'Salvar Alterações' para gravar.");
+            MessageBox.Show($"Data da carreira atualizada para {selectedDate:dd/MM/yyyy}!\nClique em 'Salvar Alterações' para gravar no arquivo.", "Data Atualizada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        else
+        {
+            MessageBox.Show("Não foi possível gravar a data no arquivo.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 

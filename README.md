@@ -81,7 +81,7 @@ PES 2019 Master League Editor/
 ## 🗺 Roadmap de Versões
 
 - [x] **v0.1**: Motor criptográfico nativo + Edição de Orçamento de Transferências e Salários + Backups automáticos.
-- [ ] **v0.2**: Edição de Calendário (data da temporada, avanço de semanas) e configurações da carreira.
+- [x] **v0.2**: Edição de Calendário (data da temporada, avanço de semanas/meses, atalho para fechamento de janela).
 - [ ] **v0.3**: Gestão do Elenco (contratos restantes, salários individuais de jogadores, moral e espírito de equipe).
 - [ ] **v0.4**: Status e Atributos de Jogadores (overall, habilidades e fadiga).
 - [ ] **v0.5**: Transferências Forçadas entre clubes diretamente no save.
