@@ -16,7 +16,8 @@ public static class MlSquadService
     public const int SecondaryTeamSpiritOffset = 0x000100D8;
 
     /// <summary>
-    /// Reads the active squad list from the decrypted Master League save data.
+    /// Reads the active squad list for the user's club from the decrypted Master League save data.
+    /// Only sequential slots belonging to the active team roster (up to 32 players) are read.
     /// </summary>
     public static List<MlPlayerEntry> ReadSquad(byte[] data, IReadOnlyDictionary<int, string>? playerNames = null, int baseOffset = DefaultSquadOffset)
     {
@@ -32,8 +33,15 @@ public static class MlSquadService
             int slotIdx = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset, 4));
             int pid = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(currentOffset + 4, 4));
 
-            // Stop criteria: Master League roster slots are sequential positive integers (e.g. 1300..1400)
-            if (slotIdx <= 0 || slotIdx > 50000 || (index > 0 && slotIdx != list[index - 1].SlotIndex + 1 && slotIdx < list[index - 1].SlotIndex))
+            // Stop criteria: Master League roster slots are strictly sequential positive integers (e.g. 1303, 1304, 1305...).
+            // Any jump (such as jumping to slot 1648 from another club) or non-positive slot indicates the end of the club's roster.
+            if (slotIdx <= 0 || slotIdx > 50000 || (index > 0 && slotIdx != list[index - 1].SlotIndex + 1))
+            {
+                break;
+            }
+
+            // A club roster cannot have negative or dummy PID
+            if (pid <= 0)
             {
                 break;
             }
@@ -43,16 +51,16 @@ public static class MlSquadService
             byte[] contractEnd = data.AsSpan(currentOffset + 48, 4).ToArray();
 
             string name = string.Empty;
-            if (playerNames != null && playerNames.TryGetValue(pid, out var resolvedName))
+            if (playerNames != null && playerNames.TryGetValue(pid, out var resolvedName) && !string.IsNullOrWhiteSpace(resolvedName))
             {
-                name = resolvedName;
+                name = resolvedName.Trim();
             }
             else
             {
                 name = GetDefaultKnownPlayerName(pid);
             }
 
-            // Salary in PES is roughly scaled: e.g. 1092 scaled ~= 13.3M EUR (~ 12,200 multiplier)
+            // Salary in PES is scaled: e.g. 1092 scaled ~= 13.3M EUR (~ 12,200 multiplier)
             long estimatedEur = (long)salaryScaled * 12200L;
 
             list.Add(new MlPlayerEntry
@@ -135,13 +143,15 @@ public static class MlSquadService
             {
                 ReadOnlySpan<byte> nameSpan = editData.AsSpan(o + 52, Math.Min(46, editData.Length - (o + 52)));
                 int nullIdx = nameSpan.IndexOf((byte)0);
-                if (nullIdx > 0)
+                string raw = nullIdx >= 0 ? Encoding.UTF8.GetString(nameSpan[..nullIdx]) : Encoding.UTF8.GetString(nameSpan);
+                string name = raw.Trim();
+                // Valid player name must be non-empty, have letters, and not look like binary garbage
+                if (!string.IsNullOrWhiteSpace(name) &&
+                    name.Any(char.IsLetter) &&
+                    name.All(c => char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsWhiteSpace(c)) &&
+                    !names.ContainsKey(pid))
                 {
-                    string name = Encoding.UTF8.GetString(nameSpan.Slice(0, nullIdx)).Trim();
-                    if (!string.IsNullOrWhiteSpace(name) && !names.ContainsKey(pid))
-                    {
-                        names[pid] = name;
-                    }
+                    names[pid] = name;
                 }
             }
         }
@@ -150,7 +160,47 @@ public static class MlSquadService
     }
 
     /// <summary>
-    /// Built-in fallback player name resolver for common and verified PES players.
+    /// Extracts the club and league name from the decrypted save description header.
+    /// E.g. "FC Barcelona / Liga Espanhola" -> Club: "FC Barcelona", League: "Liga Espanhola".
+    /// </summary>
+    public static (string Club, string League) ExtractTeamInfo(byte[] descriptionBytes)
+    {
+        if (descriptionBytes == null || descriptionBytes.Length == 0)
+            return ("Clube Desconhecido", "");
+
+        try
+        {
+            // Replace null bytes with spaces first so string functions work reliably
+            string descText = Encoding.UTF8.GetString(descriptionBytes).Replace('\0', ' ');
+            
+            // First line contains save title and club/league
+            int newlineIdx = descText.IndexOfAny(['\r', '\n']);
+            string firstLine = newlineIdx >= 0 ? descText[..newlineIdx] : descText;
+
+            // Look for " / " which separates Club and League
+            int slashIdx = firstLine.IndexOf('/');
+            if (slashIdx > 0)
+            {
+                string beforeSlash = firstLine[..slashIdx].Trim();
+                string afterSlash = firstLine[(slashIdx + 1)..].Trim();
+
+                // Strip leading "Liga Master XX" or multiple spaces
+                int lastMultiSpace = beforeSlash.LastIndexOf("   ", StringComparison.Ordinal);
+                string club = (lastMultiSpace >= 0 ? beforeSlash[(lastMultiSpace + 3)..].Trim() : beforeSlash).Trim();
+
+                return (string.IsNullOrWhiteSpace(club) ? beforeSlash : club, afterSlash);
+            }
+
+            return (firstLine.Trim(), "");
+        }
+        catch
+        {
+            return ("Clube Desconhecido", "");
+        }
+    }
+
+    /// <summary>
+    /// Built-in fallback player name resolver for common and verified PES/FL players.
     /// </summary>
     public static string GetDefaultKnownPlayerName(int pid) => pid switch
     {
@@ -173,6 +223,18 @@ public static class MlSquadService
         141038 => "Joan García",
         138183 => "Gerard Martín",
         110815 => "Rodri",
+        110718 => "K. Mbappé",
+        151604 => "Héctor Fort",
+        119835 => "Pau Víctor",
+        171615 => "Guille Fernández",
+        161886 => "Toni Fernández",
+        161884 => "Quim Junyent",
+        173584 => "Alexis Olmedo",
+        161887 => "Landry Farré",
+        171610 => "Noah Darvich",
+        171614 => "Dani Rodríguez",
+        113596 => "Unai Hernández",
+        779999 => "J. Cuenca",
         8944 => "Karim Benzema",
         33185 => "M. Neuer",
         42316 => "A. Griezmann",

@@ -91,27 +91,29 @@ public class FinanceTests
 
         var squad = Pes2019MlEditor.Core.Squad.MlSquadService.ReadSquad(mlDesc.Data, playerNames);
         Assert.NotEmpty(squad);
-        Assert.True(squad.Count >= 25);
+        Assert.Equal(30, squad.Count); // Exactly the 30 active Barcelona players (slots 1303..1332)
 
-        // Check key players in Barcelona
-        var yamal = squad.FirstOrDefault(p => p.PlayerId == 162114);
-        Assert.NotNull(yamal);
-        Assert.Contains("Yamal", yamal.Name);
+        // Verify team name extraction
+        var (club, league) = Pes2019MlEditor.Core.Squad.MlSquadService.ExtractTeamInfo(mlDesc.Description);
+        Assert.Equal("FC Barcelona", club);
+        Assert.Equal("Liga Espanhola", league);
 
-        var raph = squad.FirstOrDefault(p => p.PlayerId == 110644);
-        Assert.NotNull(raph);
-        Assert.Contains("Raphinha", raph.Name);
+        // Verify key players are identified by their real names
+        Assert.Contains(squad, p => p.Name == "Lamine Yamal" && p.PlayerId == 162114);
+        Assert.Contains(squad, p => p.Name == "Raphinha" && p.PlayerId == 110644);
+        Assert.Contains(squad, p => p.Name == "Rodri" && p.PlayerId == 110815);
+        Assert.Contains(squad, p => p.Name == "Pau Cubarsí" && p.PlayerId == 165696);
+        Assert.Contains(squad, p => p.Name == "Héctor Fort" && p.PlayerId == 151604);
+        Assert.Contains(squad, p => p.Name == "Pau Víctor" && p.PlayerId == 119835);
 
-        var rodri = squad.FirstOrDefault(p => p.PlayerId == 110815);
-        Assert.NotNull(rodri);
-        Assert.Contains("Rodri", rodri.Name);
+        // Verify none of the squad members display as unmapped placeholder
+        Assert.DoesNotContain(squad, p => p.Name.StartsWith("Jogador #"));
 
-        // Check Team Spirit reading & writing
-        byte ts = Pes2019MlEditor.Core.Squad.MlSquadService.ReadTeamSpirit(mlDesc.Data);
-        Assert.Equal(94, ts);
+        // Verify that Mbappé (from PSG/Real Madrid, slot 1648) does NOT bleed into Barcelona's squad
+        Assert.DoesNotContain(squad, p => p.PlayerId == 110718);
 
-        bool spiritWritten = Pes2019MlEditor.Core.Squad.MlSquadService.WriteTeamSpirit(mlDesc.Data, 99);
-        Assert.True(spiritWritten);
-        Assert.Equal(99, Pes2019MlEditor.Core.Squad.MlSquadService.ReadTeamSpirit(mlDesc.Data));
+        // Verify Team Spirit read
+        byte spirit = Pes2019MlEditor.Core.Squad.MlSquadService.ReadTeamSpirit(mlDesc.Data);
+        Assert.Equal(94, spirit);
     }
 }

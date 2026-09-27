@@ -78,6 +78,7 @@ public partial class MainForm : Form
     private Button _btnApplyBudget = null!;
 
     // Squad Controls (v0.3)
+    private Label _lblSquadTitle = null!;
     private DataGridView _gridSquad = null!;
     private NumericUpDown _numTeamSpirit = null!;
     private Button _btnApplyTeamSpirit = null!;
@@ -697,7 +698,7 @@ public partial class MainForm : Form
     {
         _viewSquad = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
 
-        var lblTitle = new Label
+        _lblSquadTitle = new Label
         {
             Text = "Gestão do Elenco, Contratos & Espírito de Equipe",
             Font = new Font("Segoe UI", 14f, FontStyle.Bold),
@@ -861,7 +862,7 @@ public partial class MainForm : Form
 
         grpPlayerEdit.Controls.AddRange([_lblSelectedPlayerInfo, lblSalaryVal, _numPlayerSalaryScaled, _lblPlayerSalaryEurEst, _btnApplyPlayerSalary]);
 
-        _viewSquad.Controls.AddRange([lblTitle, grpSpirit, grpSquadTable, grpPlayerEdit]);
+        _viewSquad.Controls.AddRange([_lblSquadTitle, grpSpirit, grpSquadTable, grpPlayerEdit]);
     }
 
     // ==========================================
@@ -982,14 +983,18 @@ public partial class MainForm : Form
             _currentSave = SaveFileManager.LoadSave(_currentFilePath);
 
             string fileName = Path.GetFileName(_currentFilePath);
-            _lblFilePath.Text = $"Arquivo: {fileName}";
-            _lblActiveSaveIndicator.Text = $"● {fileName}";
+            var (clubName, leagueName) = MlSquadService.ExtractTeamInfo(_currentSave.Description);
+            string teamDisplay = string.IsNullOrWhiteSpace(leagueName) ? clubName : $"{clubName} ({leagueName})";
+
+            _lblFilePath.Text = $"Arquivo: {fileName}  |  ⚽ {teamDisplay}";
+            _lblActiveSaveIndicator.Text = $"● {clubName}";
             _lblActiveSaveIndicator.ForeColor = ColorSuccess;
             _lblStatus.Text = $"Save Carregado com Sucesso! (Payload: {_currentSave.Data.Length:N0} bytes)";
             _btnSaveFile.Enabled = true;
             _btnBackup.Enabled = true;
 
             Log($"Save carregado com sucesso: {_currentFilePath}");
+            Log($"Clube / Liga detectados: {teamDisplay}");
             Log($"Tipo: {_currentSave.FileHeader.FileTypeString} | Payload: {_currentSave.Data.Length:N0} bytes");
 
             // Render logo
@@ -1078,7 +1083,9 @@ public partial class MainForm : Form
         if (_currentSave == null) return;
 
         _currentSquad = MlSquadService.ReadSquad(_currentSave.Data, _editPlayerNames);
-        _lblSquadCount.Text = $"Total de jogadores no elenco: {_currentSquad.Count}";
+        var (clubName, leagueName) = MlSquadService.ExtractTeamInfo(_currentSave.Description);
+        _lblSquadTitle.Text = $"Gestão do Elenco: {clubName} ({_currentSquad.Count} jogadores)";
+        _lblSquadCount.Text = $"Total de jogadores no elenco de {clubName}: {_currentSquad.Count}";
 
         // Configure DataGridView
         _gridSquad.DataSource = null;
